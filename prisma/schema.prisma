@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+    // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+    generator client {
+      provider = "prisma-client-js"
+    }
+
+    datasource db {
+      provider = "sqlite"
+      url      = "file:./dev.db" // Use SQLite database file
+    }
+
+    model Link {
+      id          String    @id @default(cuid()) // Unique ID for the link
+      createdAt   DateTime  @default(now())     // Timestamp of creation
+      originalUrl String                        // The original long URL
+      shortCode   String    @unique             // The generated short code (e.g., 'aB3xYz')
+      clicks      Click[]                       // Relation to click events
+      campaignId  String?                       // Optional: Link to a campaign
+      campaign    Campaign? @relation(fields: [campaignId], references: [id])
+
+      // Optional fields for mobile app deep linking
+      androidAppUri      String?  // e.g., myapp://path/to/content
+      androidFallbackUrl String?  // e.g., Play Store URL
+      iosAppUri          String?  // e.g., myapp://path/to/content
+      iosFallbackUrl     String?  // e.g., App Store URL
+
+      @@index([shortCode]) // Index for faster lookups by short code
+    }
+
+    model Campaign {
+      id          String   @id @default(cuid()) // Unique ID for the campaign
+      createdAt   DateTime @default(now())     // Timestamp of creation
+      name        String                       // Name of the campaign
+      description String?                      // Optional description
+      links       Link[]                       // Links associated with this campaign
+    }
+
+    model Click {
+      id        String   @id @default(cuid()) // Unique ID for the click event
+      createdAt DateTime @default(now())     // Timestamp of the click
+      linkId    String                       // ID of the link that was clicked
+      link      Link     @relation(fields: [linkId], references: [id])
+      userAgent String?                      // Browser/device information
+      referrer  String?                      // Referring URL
+      ipAddress String?                      // IP address (consider privacy/anonymization)
+      utmSource String?                      // UTM source parameter from the click URL
+      country   String?                      // Country derived from IP (requires GeoIP lookup)
+      // Add other analytics fields as needed, e.g., city
+    }
