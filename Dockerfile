@@ -31,6 +31,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/start.sh ./
 
 # Install production dependencies only
 RUN npm install --production
@@ -45,8 +46,7 @@ ENV PORT=3000
 # Expose the port
 EXPOSE 3000
 
-# Create a shell script to run migrations and start the server
-RUN echo '#!/bin/sh\nnpx prisma migrate deploy\nnpm start' > /app/start.sh && chmod +x /app/start.sh
+RUN chmod +x /app/start.sh
 
 # Start the application using the shell script
-CMD ["/app/start.sh"]
+CMD ["/bin/sh", "/app/start.sh"]
